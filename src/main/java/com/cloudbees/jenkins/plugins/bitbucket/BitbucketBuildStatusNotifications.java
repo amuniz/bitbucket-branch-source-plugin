@@ -23,6 +23,10 @@
  */
 package com.cloudbees.jenkins.plugins.bitbucket;
 
+import java.io.File;
+
+import org.jenkinsci.plugins.displayurlapi.DisplayURLProvider;
+
 import com.cloudbees.jenkins.plugins.bitbucket.api.BitbucketApi;
 import com.cloudbees.jenkins.plugins.bitbucket.api.BitbucketBuildStatus;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
@@ -44,11 +48,9 @@ import hudson.plugins.git.util.BuildData;
 import hudson.plugins.mercurial.MercurialTagAction;
 import hudson.scm.SCM;
 import hudson.scm.SCMRevisionState;
-import java.io.File;
 import jenkins.scm.api.SCMHead;
 import jenkins.scm.api.SCMSource;
 import jenkins.scm.api.SCMSourceOwner;
-import org.jenkinsci.plugins.displayurlapi.DisplayURLProvider;
 
 /**
  * This class encapsulates all Bitbucket notifications logic.
@@ -65,6 +67,10 @@ public class BitbucketBuildStatusNotifications {
         if (revision != null) {
             Result result = build.getResult();
             String url = DisplayURLProvider.get().getRunURL(build);
+            if (url == null || url.contains("unconfigured-jenkins-location")) {
+            	listener.getLogger().println("[Bitbucket] In order for most Bitbucket API requests to work the 'Jenkins URL' of the Jenkins instance must be set.");
+            	listener.getLogger().println("[Bitbucket] 'url' field for this API request is set to: " + url);
+            }
             BitbucketBuildStatus status = null;
             if (Result.SUCCESS.equals(result)) {
                 status = new BitbucketBuildStatus(revision, "This commit looks good", "SUCCESSFUL", url, build.getParent().getName(), build.getDisplayName());
